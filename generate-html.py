@@ -134,6 +134,11 @@ $(document).ready(function() {
 </head>
 <body>
 <h1>{title}</h1>
+<ul>
+<li><a href="index.html">Economic Parts</a></li>
+<li><a href="active.html">Active Economic Parts (In-stock, small orders accepted)</a></li>
+<li><a href="economic-parts.csv">Economic Parts (CSV)</a></li>
+</ul>
 <details>
 <summary>Categories</summary>
 {', '.join(list(map(lambda x: x[0]+" ("+str(x[1])+")", sorted(categories.items(), key=lambda x:-x[1]))))}
