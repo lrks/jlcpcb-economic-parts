@@ -30,18 +30,16 @@ jobs:
           mv economic-parts.csv dist/
           mv economic-parts.html dist/index.html
           mv economic-parts-active.html dist/active.html
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v3
+        id: deployment
         with:
-          path: dist
+          path: dist/
   deploy:
     needs: build
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/deploy-pages@v2
+      - uses: actions/deploy-pages@v4
         id: deployment
