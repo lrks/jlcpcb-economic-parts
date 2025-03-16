@@ -1,0 +1,47 @@
+name: gh-pages-deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: pip install pandas
+      - name: Download JLCPCB Parts List
+        run: python download.py
+      - name: Download Old Parts List
+        run: |
+          URL="https://lrks.github.io/jlcpcb-economic-parts/economic-parts.csv"
+          curl -o economic-parts.csv --fail $URL || true
+      - name: Generate New Parts List
+        run: python generate-csv.py
+      - name: Generate HTML
+        run: python generate-html.py
+      - name: Rename
+        run: |
+          mkdir -p dist
+          mv economic-parts.csv dist/
+          mv economic-parts.html dist/index.html
+          mv economic-parts-active.html dist/active.html
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: dist
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v2
+        id: deployment
