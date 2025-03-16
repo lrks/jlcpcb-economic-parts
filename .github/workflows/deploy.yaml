@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install dependencies
-        run: pip install pandas
+        run: pip install pandas requests
       - name: Download JLCPCB Parts List
         run: python download.py
       - name: Download Old Parts List
