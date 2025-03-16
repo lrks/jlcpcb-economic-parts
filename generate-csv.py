@@ -3,10 +3,11 @@ import glob
 import json
 import datetime
 import os
+import pytz
 
 if __name__ == '__main__':
     items = []
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    now = datetime.datetime.now(tz=pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
     for file in glob.glob('parts-page*.json'):
         print(file)
         with open(file) as f: rows = json.load(f)['data']['componentPageInfo']['list']

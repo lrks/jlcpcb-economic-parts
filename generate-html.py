@@ -17,7 +17,7 @@ def generate(input_csvpath, output_htmlpath, only_active):
   <th>Price</th>
   <th>Stock</th>
   <th>MOQ</th>
-  {'<th>LastSeen (JST)</th>' if not(only_active) else ''}
+  {'<th>LastSeen (UTC)</th>' if not(only_active) else ''}
   {'<th class="filter-select">Deleted</th>' if not(only_active) else ''}
 </tr></thead>\n'''
     with open(input_csvpath) as f:
