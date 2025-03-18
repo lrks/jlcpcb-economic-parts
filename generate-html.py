@@ -12,7 +12,7 @@ def generate(input_csvpath, output_htmlpath, only_active):
   <th class="filter-select">Brand</th>
   <th>Model</th>
   <th class="filter-select">Package</th>
-  <th>describe</th>
+  <th>Describe</th>
   <th>erpComponentName</th>
   <th>Price</th>
   <th>Stock</th>
@@ -61,7 +61,7 @@ def generate(input_csvpath, output_htmlpath, only_active):
             elif stock >= 10:
                 td += f'<td style="background:#ffd700">{stock}</td>'
             else:
-                td += f'<td style="background:red;color:#000">{stock}</td>'
+                td += f'<td style="background:red;color:#FFF">{stock}</td>'
                 if only_active: continue
 
             moq = int(item[14])
@@ -70,7 +70,7 @@ def generate(input_csvpath, output_htmlpath, only_active):
             elif moq <= 5:
                 td += f'<td style="background:#ffd700">{moq}</td>'
             else:
-                td += f'<td style="background:red;color:#000">{moq}</td>'
+                td += f'<td style="background:red;color:#FFF">{moq}</td>'
                 if only_active: continue
 
             lastSeen = html.escape(item[5])
