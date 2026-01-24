@@ -3,7 +3,6 @@ import glob
 import json
 import datetime
 import os
-import pytz
 
 if __name__ == '__main__':
     items = []
