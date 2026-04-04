@@ -9,18 +9,21 @@ if __name__ == '__main__':
 
         url = 'https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList/v2'
         r = requests.post(url, headers={'content-type':'application/json'}, json={
-                'preferredComponentFlagCheck': False,
-                'componentLibraryTypeCheck': False,
                 'currentPage': page,
-                'pageSize': 100,
-                'searchSource': 'search',
-                'componentAttributes': [],
+                'pageSize': 50,
+                'searchType': 2,
+                'keyword': None,
                 'componentLibraryType': 'base',
+                'presaleType': '',
                 'preferredComponentFlag': True,
-                'stockFlag': None,
+                'stockFlag': False,
                 'stockSort': None,
+                'firstSortName': None,
+                'secondSortName': None,
                 'componentBrand': None,
                 'componentSpecification': None,
+                'componentAttributes': [],
+                'searchSource': 'search',
             })
         r.raise_for_status()
 
