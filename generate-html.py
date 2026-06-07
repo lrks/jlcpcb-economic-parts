@@ -1,6 +1,9 @@
 import csv
 import html
 
+def get_item(item, field, fallback=''):
+    return item[field] if field in item else fallback
+
 def generate(input_csvpath, output_htmlpath, only_active):
     categories = {}
     item_count = 0
@@ -21,41 +24,46 @@ def generate(input_csvpath, output_htmlpath, only_active):
   {'<th class="filter-select">Deleted</th>' if not(only_active) else ''}
 </tr></thead>\n'''
     with open(input_csvpath) as f:
-        reader = csv.reader(f)
-        header = next(reader)
+        reader = csv.DictReader(f)
         for item in reader:
             td = ''
 
-            code = f'<a href="https://jlcpcb.com/partdetail/{item[1]}" target="_blank">{item[0]}</a>'
-            if item[2]: code += f' (<a href="https://jlcpcb.com/api/file/downloadByFileSystemAccessId/{item[2]}" target="_blank">doc</a>)'
+            code = f'<a href="https://jlcpcb.com/partdetail/{get_item(item, "url")}" target="_blank">{get_item(item, "code")}</a>'
+            if get_item(item, 'file'): code += f' (<a href="https://jlcpcb.com/api/file/downloadByFileSystemAccessId/{get_item(item, "file")}" target="_blank">doc</a>)'
             td += f'<td>{code}</td>'
 
-            library = html.escape(item[3])
-            if item[3] != 'base': library += ' &#x1f44d;' # Preferred Extended Parts
+            library = html.escape(get_item(item, 'library'))
+            if get_item(item, 'library') != 'base': library += ' &#x1f44d;' # Preferred Extended Parts
             td += f'<td>{library}</td>'
 
-            category = html.escape(item[9])
+            component_type = get_item(item, 'type')
+            parent_category = get_item(item, 'category') or 'Other'
+            if parent_category and component_type and parent_category != component_type:
+                category = f'{parent_category}: {component_type}'
+            else:
+                category = component_type
+            category = html.escape(category)
             td += f'<td>{category}</td>'
 
-            brand = html.escape(item[6])
+            brand = html.escape(get_item(item, 'brand'))
             td += f'<td>{brand}</td>'
 
-            model = html.escape(item[7])
+            model = html.escape(get_item(item, 'model'))
             td += f'<td>{model}</td>'
 
-            package = html.escape(item[8])
+            package = html.escape(get_item(item, 'package'))
             td += f'<td>{package}</td>'
 
-            describe = html.escape(item[10])
+            describe = html.escape(get_item(item, 'describe'))
             td += f'<td>{describe}</td>'
 
-            erpComponentName = html.escape(item[11])
+            erpComponentName = html.escape(get_item(item, 'erpComponentName'))
             td += f'<td>{erpComponentName}</td>'
 
-            price = html.escape(item[12])
+            price = html.escape(get_item(item, 'price'))
             td += f'<td>{price}</td>'
 
-            stock = int(item[13])
+            stock = int(get_item(item, 'stock'))
             if stock > 100:
                 td += f'<td>{stock}</td>'
             elif stock >= 10:
@@ -64,7 +72,7 @@ def generate(input_csvpath, output_htmlpath, only_active):
                 td += f'<td style="background:red;color:#FFF">{stock}</td>'
                 if only_active: continue
 
-            moq = int(item[14])
+            moq = int(get_item(item, 'MOQ'))
             if moq == 1:
                 td += f'<td>{moq}</td>'
             elif moq <= 5:
@@ -73,10 +81,10 @@ def generate(input_csvpath, output_htmlpath, only_active):
                 td += f'<td style="background:red;color:#FFF">{moq}</td>'
                 if only_active: continue
 
-            lastSeen = html.escape(item[5])
+            lastSeen = html.escape(get_item(item, 'lastSeen'))
             if not(only_active): td += f'<td>{lastSeen}</td>'
 
-            deleted = html.escape(item[4])
+            deleted = html.escape(get_item(item, 'deleted'))
             if only_active:
                 if deleted == "1": continue
             else:
