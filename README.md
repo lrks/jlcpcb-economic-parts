@@ -6,6 +6,7 @@ This repository provides lists of components in JLCPCB's Economic Parts (Basic a
 * Lists of JLCPCB Basic and Preferred Extended Parts
 * Data fetched from JLCPCB's API
 * Available in both HTML and CSV formats
+* Includes first seen, last seen, and deleted status fields
 * Automatically updated every week
 
 

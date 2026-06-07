@@ -4,6 +4,26 @@ import json
 import datetime
 import os
 
+FIELDNAMES = [
+    'code',
+    'url',
+    'file',
+    'library',
+    'deleted',
+    'lastSeen',
+    'brand',
+    'model',
+    'package',
+    'type',
+    'describe',
+    'erpComponentName',
+    'price',
+    'stock',
+    'MOQ',
+    'category',
+    'firstSeen',
+]
+
 if __name__ == '__main__':
     items = []
     now = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
@@ -35,6 +55,7 @@ if __name__ == '__main__':
                 'stock': row['stockCount'],
                 'MOQ':   row['minPurchaseNum'],
                 'category': row['secondSortName'] or 'Undefined',
+                'firstSeen': now,
             })
 
     df = pd.DataFrame(items)
@@ -45,11 +66,22 @@ if __name__ == '__main__':
         df.to_csv(filename, index=False)
         exit()
 
-    old_df = pd.read_csv(filename)
+    old_df = pd.read_csv(filename, keep_default_na=False)
+    if 'firstSeen' not in old_df.columns:
+        old_df['firstSeen'] = ''
+
+    old_items = old_df.set_index('code').to_dict('index')
+    def get_first_seen(row):
+        old_item = old_items.get(row['code'])
+        if old_item is None or str(old_item.get('deleted')) == '1':
+            return row['firstSeen']
+        return old_item.get('firstSeen') or row['firstSeen']
+    df['firstSeen'] = df.apply(get_first_seen, axis=1)
+
     deleted_codes = set(old_df['code']) - set(df['code'])
     if deleted_codes:
         deleted_items = old_df[old_df['code'].isin(deleted_codes)].copy()
         deleted_items['deleted'] = 1
         df = pd.concat([df, deleted_items], ignore_index=True)
     df.sort_values(['deleted', 'code'], inplace=True)
-    df.to_csv(filename, index=False)
+    df.to_csv(filename, index=False, columns=FIELDNAMES)

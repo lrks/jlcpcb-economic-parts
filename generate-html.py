@@ -1,10 +1,14 @@
 import csv
 import html
 
+TRACKING_STARTED = '2026-06-07'
+
 def get_item(item, field, fallback=''):
     return item[field] if field in item else fallback
 
-def generate(input_csvpath, output_htmlpath, only_active):
+def generate(input_csvpath, output_htmlpath, mode):
+    only_active = mode == 'active'
+    show_first_seen = mode != 'active'
     categories = {}
     item_count = 0
 
@@ -20,12 +24,15 @@ def generate(input_csvpath, output_htmlpath, only_active):
   <th>Price</th>
   <th>Stock</th>
   <th>MOQ</th>
+  {'<th>FirstSeen (UTC)</th>' if show_first_seen else ''}
   {'<th>LastSeen (UTC)</th>' if not(only_active) else ''}
   {'<th class="filter-select">Deleted</th>' if not(only_active) else ''}
 </tr></thead>\n'''
     with open(input_csvpath) as f:
         reader = csv.DictReader(f)
-        for item in reader:
+        rows = list(reader)
+
+        for item in rows:
             td = ''
 
             code = f'<a href="https://jlcpcb.com/partdetail/{get_item(item, "url")}" target="_blank">{get_item(item, "code")}</a>'
@@ -81,6 +88,9 @@ def generate(input_csvpath, output_htmlpath, only_active):
                 td += f'<td style="background:red;color:#FFF">{moq}</td>'
                 if only_active: continue
 
+            firstSeen = html.escape(get_item(item, 'firstSeen'))
+            if show_first_seen: td += f'<td>{firstSeen}</td>'
+
             lastSeen = html.escape(get_item(item, 'lastSeen'))
             if not(only_active): td += f'<td>{lastSeen}</td>'
 
@@ -103,6 +113,10 @@ def generate(input_csvpath, output_htmlpath, only_active):
 
     title = 'JLCPCB Basic/Preferred Extended Parts'
     if only_active: title += ' (active)'
+
+    note = ''
+    if mode == 'all':
+        note = f'<p>FirstSeen is tracked from {TRACKING_STARTED} onward. Parts that were already present when tracking began use that date as their FirstSeen value.</p>'
 
     fhtml = open(output_htmlpath, 'w')
     fhtml.write('''<!DOCTYPE html>
@@ -147,6 +161,7 @@ $(document).ready(function() {
 <li><a href="active.html">Active Economic Parts (In-stock, small orders accepted)</a></li>
 <li><a href="economic-parts.csv">Economic Parts (CSV)</a></li>
 </ul>
+{note}
 <details>
 <summary>Categories</summary>
 {', '.join(list(map(lambda x: x[0]+" ("+str(x[1])+")", sorted(categories.items(), key=lambda x:-x[1]))))}
@@ -157,5 +172,5 @@ $(document).ready(function() {
 </body></html>''')
 
 if __name__ == '__main__':
-    generate('economic-parts.csv', 'economic-parts.html', False)
-    generate('economic-parts.csv', 'economic-parts-active.html', True)
+    generate('economic-parts.csv', 'economic-parts.html', 'all')
+    generate('economic-parts.csv', 'economic-parts-active.html', 'active')
