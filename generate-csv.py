@@ -22,7 +22,17 @@ FIELDNAMES = [
     'MOQ',
     'category',
     'firstSeen',
+    'pcbaMinQty',
+    'pcbaMinPrice',
 ]
+
+def get_unit_price(prices, qty):
+    for price in prices:
+        start = price['startNumber']
+        end = price['endNumber']
+        if start <= qty and (end == -1 or qty <= end):
+            return price['productPrice']
+    return 99999
 
 if __name__ == '__main__':
     items = []
@@ -33,9 +43,9 @@ if __name__ == '__main__':
 
         for row in rows:
             moq = row['minPurchaseNum'] or 99999
-            filterPrices = filter(lambda x: x['startNumber'] >= moq, row['componentPrices'])
-            sortedPrices = sorted(list(filterPrices), key=lambda x: x['startNumber'])
-            price = 99999 if len(sortedPrices)==0 else sortedPrices[0]['productPrice']
+            price = get_unit_price(row['componentPrices'], moq)
+            pcba_min_qty = max(moq + (row['lossNumber'] or 0), row['leastPatchNumber'] or 0)
+            pcba_min_price = round(get_unit_price(row['componentPrices'], pcba_min_qty) * pcba_min_qty, 10)
             items.append({
                 'code':    row['componentCode'],
                 'url':     row['urlSuffix'],
@@ -56,6 +66,8 @@ if __name__ == '__main__':
                 'MOQ':   row['minPurchaseNum'],
                 'category': row['secondSortName'] or 'Undefined',
                 'firstSeen': now,
+                'pcbaMinQty': pcba_min_qty,
+                'pcbaMinPrice': pcba_min_price,
             })
 
     df = pd.DataFrame(items)
@@ -69,6 +81,10 @@ if __name__ == '__main__':
     old_df = pd.read_csv(filename, keep_default_na=False)
     if 'firstSeen' not in old_df.columns:
         old_df['firstSeen'] = ''
+    if 'pcbaMinQty' not in old_df.columns:
+        old_df['pcbaMinQty'] = ''
+    if 'pcbaMinPrice' not in old_df.columns:
+        old_df['pcbaMinPrice'] = ''
 
     old_items = old_df.set_index('code').to_dict('index')
     def get_first_seen(row):

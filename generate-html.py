@@ -6,6 +6,18 @@ TRACKING_STARTED = '2026-06-07'
 def get_item(item, field, fallback=''):
     return item[field] if field in item else fallback
 
+def get_float(item, field, fallback=0):
+    try:
+        return float(get_item(item, field, fallback))
+    except (TypeError, ValueError):
+        return fallback
+
+def get_int(item, field, fallback=0):
+    try:
+        return int(get_item(item, field, fallback))
+    except (TypeError, ValueError):
+        return fallback
+
 def generate(input_csvpath, output_htmlpath, mode):
     only_active = mode == 'active'
     show_first_seen = mode != 'active'
@@ -23,7 +35,9 @@ def generate(input_csvpath, output_htmlpath, mode):
   <th>erpComponentName</th>
   <th>Price</th>
   <th>Stock</th>
-  <th>MOQ</th>
+  <th>Purchase MOQ</th>
+  <th>PCBA Min Qty</th>
+  <th>PCBA Min Price</th>
   {'<th>FirstSeen (UTC)</th>' if show_first_seen else ''}
   {'<th>LastSeen (UTC)</th>' if not(only_active) else ''}
   {'<th class="filter-select">Deleted</th>' if not(only_active) else ''}
@@ -88,6 +102,25 @@ def generate(input_csvpath, output_htmlpath, mode):
                 td += f'<td style="background:red;color:#FFF">{moq}</td>'
                 if only_active: continue
 
+            pcba_min_qty = get_int(item, 'pcbaMinQty')
+            if pcba_min_qty > 20:
+                td += f'<td style="background:red;color:#FFF">{pcba_min_qty}</td>'
+            elif pcba_min_qty >= 10:
+                td += f'<td style="background:#ffd700">{pcba_min_qty}</td>'
+            else:
+                td += f'<td>{pcba_min_qty}</td>'
+
+            pcba_min_price = get_float(item, 'pcbaMinPrice')
+            price = get_float(item, 'price')
+            pcba_min_price_ratio = pcba_min_price / price if price else 1
+            pcba_min_price_text = html.escape(get_item(item, 'pcbaMinPrice'))
+            if (pcba_min_price >= 10 and pcba_min_price_ratio > 5) or (pcba_min_price >= 2 and pcba_min_price_ratio > 10):
+                td += f'<td style="background:red;color:#FFF">{pcba_min_price_text}</td>'
+            elif (pcba_min_price >= 10 and pcba_min_price_ratio > 2) or (pcba_min_price >= 2 and pcba_min_price_ratio > 5) or pcba_min_price_ratio > 25:
+                td += f'<td style="background:#ffd700">{pcba_min_price_text}</td>'
+            else:
+                td += f'<td>{pcba_min_price_text}</td>'
+
             firstSeen = html.escape(get_item(item, 'firstSeen'))
             if show_first_seen: td += f'<td>{firstSeen}</td>'
 
@@ -145,6 +178,11 @@ $(document).ready(function() {
           "1":   function(e, n, f, i, $r, c, data) { return n==1; },
           "2-5": function(e, n, f, i, $r, c, data) { return 2<=n && n<5; },
           "> 5": function(e, n, f, i, $r, c, data) { return n>5; },
+        },
+        11: {
+          "1-9":   function(e, n, f, i, $r, c, data) { return 1<=n && n<=9; },
+          "10-20": function(e, n, f, i, $r, c, data) { return 10<=n && n<=20; },
+          "> 20":  function(e, n, f, i, $r, c, data) { return n>20; },
         }
       }
     }
