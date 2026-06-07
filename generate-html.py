@@ -18,6 +18,13 @@ def get_int(item, field, fallback=0):
     except (TypeError, ValueError):
         return fallback
 
+def get_doc_url(file):
+    if not file:
+        return ''
+    if file.startswith('http://') or file.startswith('https://'):
+        return file
+    return f'https://jlcpcb.com/api/file/downloadByFileSystemAccessId/{file}'
+
 def generate(input_csvpath, output_htmlpath, mode):
     only_active = mode == 'active'
     show_first_seen = mode != 'active'
@@ -50,7 +57,8 @@ def generate(input_csvpath, output_htmlpath, mode):
             td = ''
 
             code = f'<a href="https://jlcpcb.com/partdetail/{get_item(item, "url")}" target="_blank">{get_item(item, "code")}</a>'
-            if get_item(item, 'file'): code += f' (<a href="https://jlcpcb.com/api/file/downloadByFileSystemAccessId/{get_item(item, "file")}" target="_blank">doc</a>)'
+            doc_url = get_doc_url(get_item(item, 'file'))
+            if doc_url: code += f' (<a href="{html.escape(doc_url, quote=True)}" target="_blank">doc</a>)'
             td += f'<td>{code}</td>'
 
             library = html.escape(get_item(item, 'library'))

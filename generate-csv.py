@@ -34,6 +34,15 @@ def get_unit_price(prices, qty):
             return price['productPrice']
     return 99999
 
+def get_data_manual_file(row):
+    return (
+        row.get('dataManualUrl')
+        or row.get('dataManualOfficialLink')
+        or row.get('dataManualFileAccessIdUrl')
+        or row.get('dataManualFileAccessId')
+        or ''
+    )
+
 if __name__ == '__main__':
     items = []
     now = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
@@ -49,7 +58,7 @@ if __name__ == '__main__':
             items.append({
                 'code':    row['componentCode'],
                 'url':     row['urlSuffix'],
-                'file':    row['dataManualFileAccessId'],
+                'file':    get_data_manual_file(row),
                 'library': row['componentLibraryType'],
                 'deleted': 0,
                 'lastSeen': now,
