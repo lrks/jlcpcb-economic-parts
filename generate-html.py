@@ -116,7 +116,7 @@ def generate(input_csvpath, output_htmlpath, mode):
             pcba_min_price_text = html.escape(get_item(item, 'pcbaMinPrice'))
             if (pcba_min_price >= 10 and pcba_min_price_ratio > 5) or (pcba_min_price >= 2 and pcba_min_price_ratio > 10):
                 td += f'<td style="background:red;color:#FFF">{pcba_min_price_text}</td>'
-            elif (pcba_min_price >= 10 and pcba_min_price_ratio > 2) or (pcba_min_price >= 2 and pcba_min_price_ratio > 5) or pcba_min_price_ratio > 25:
+            elif (pcba_min_price >= 10 and pcba_min_price_ratio > 2) or (pcba_min_price >= 2 and pcba_min_price_ratio > 5) or (pcba_min_price >= 1 and pcba_min_price_ratio > 20) or pcba_min_price_ratio > 25:
                 td += f'<td style="background:#ffd700">{pcba_min_price_text}</td>'
             else:
                 td += f'<td>{pcba_min_price_text}</td>'
