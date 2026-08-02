@@ -43,18 +43,6 @@ def get_data_manual_file(row):
         or ''
     )
 
-def sort_by_first_seen(df):
-    # firstSeen is stored as UTC in '%Y-%m-%d %H:%M:%S' format.  Parse it
-    # explicitly so ordering remains chronological even if older CSVs contain
-    # missing or malformed values; those values are placed last.
-    df['_firstSeenSort'] = pd.to_datetime(
-        df['firstSeen'], format='%Y-%m-%d %H:%M:%S', errors='coerce', utc=True
-    )
-    df.sort_values(
-        ['_firstSeenSort', 'code'], ascending=[False, True], na_position='last', inplace=True
-    )
-    df.drop(columns='_firstSeenSort', inplace=True)
-
 if __name__ == '__main__':
     items = []
     now = datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
@@ -92,7 +80,7 @@ if __name__ == '__main__':
             })
 
     df = pd.DataFrame(items)
-    sort_by_first_seen(df)
+    df.sort_values('code', inplace=True)
 
     filename = 'economic-parts.csv'
     if not os.path.isfile(filename):
@@ -120,5 +108,5 @@ if __name__ == '__main__':
         deleted_items = old_df[old_df['code'].isin(deleted_codes)].copy()
         deleted_items['deleted'] = 1
         df = pd.concat([df, deleted_items], ignore_index=True)
-    sort_by_first_seen(df)
+    df.sort_values(['deleted', 'code'], inplace=True)
     df.to_csv(filename, index=False, columns=FIELDNAMES)
